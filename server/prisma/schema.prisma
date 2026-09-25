@@ -1,0 +1,165 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("STUDENT") // ADMIN, WARDEN, STUDENT, SECURITY, STAFF
+  phone        String?
+  avatar       String?
+  roomNumber   String?
+  rollNumber   String?  @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  preference   StudentPreference?
+  complaints   Complaint[]        @relation("StudentComplaints")
+  assignedJobs Complaint[]        @relation("StaffAssignedComplaints")
+  passes       VisitorPass[]
+  leaves       StudentLeave[]
+  invoices     FeeInvoice[]
+}
+
+model Room {
+  id               Int      @id @default(autoincrement())
+  roomNumber       String   @unique // e.g. "A-101", "B-204"
+  block            String   // "Block A", "Block B", "Block C"
+  floor            Int      // 1, 2, 3, etc.
+  type             String   // "Single AC", "Double Non-AC", "Double AC", "Triple Non-AC"
+  capacity         Int      // 1, 2, 3
+  occupancy        Int      @default(0)
+  basePrice        Float
+  amenities        String?  // comma separated: "AC, WiFi, Attached Bath, Balcony"
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  complaints       Complaint[]
+  alerts           MaintenanceAlert[]
+}
+
+model StudentPreference {
+  id                  Int      @id @default(autoincrement())
+  userId              Int      @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studySchedule       String   @default("FLEXIBLE") // NIGHT_OWL, EARLY_BIRD, FLEXIBLE
+  sleepTime           String   @default("23:00")
+  cleanlinessLevel    Int      @default(4) // 1 to 5
+  noiseTolerance      String   @default("MODERATE") // QUIET, MODERATE, SOCIAL
+  acPreference        Boolean  @default(false)
+  preferredFloor      Int      @default(1)
+  targetRoommateEmail String?
+  allocated           Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Complaint {
+  id                 Int       @id @default(autoincrement())
+  ticketNumber       String    @unique
+  userId             Int
+  user               User      @relation("StudentComplaints", fields: [userId], references: [id])
+  roomId             Int?
+  room               Room?     @relation(fields: [roomId], references: [id])
+  roomNumber         String
+  rawText            String
+  title              String
+  category           String    // Electrical, Plumbing, HVAC/AC, Carpentry, Network/WiFi, Housekeeping
+  priority           String    @default("MEDIUM") // CRITICAL, HIGH, MEDIUM, LOW
+  status             String    @default("OPEN") // OPEN, ASSIGNED, IN_PROGRESS, RESOLVED, CLOSED
+  aiExtractedData    String?   // JSON string with confidence & tags
+  assignedToStaffId  Int?
+  assignedStaff      User?     @relation("StaffAssignedComplaints", fields: [assignedToStaffId], references: [id])
+  resolutionNotes    String?
+  resolvedAt         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model MaintenanceAlert {
+  id             Int      @id @default(autoincrement())
+  roomNumber     String
+  roomId         Int?
+  room           Room?    @relation(fields: [roomId], references: [id])
+  category       String
+  complaintCount Int
+  windowDays     Int      @default(30)
+  severity       String   @default("WARNING") // WARNING, CRITICAL
+  message        String
+  recommendation String
+  status         String   @default("ACTIVE") // ACTIVE, ACKNOWLEDGED, RESOLVED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model MealLog {
+  id                 Int      @id @default(autoincrement())
+  date               String   // YYYY-MM-DD
+  mealType           String   // Breakfast, Lunch, Dinner
+  expectedHeadcount  Int
+  previousAverage    Int
+  recommendedPrep    Int
+  actualTurnout      Int?
+  foodWastedKg       Float?
+  savingsEstimated   Float?
+  createdAt          DateTime @default(now())
+}
+
+model StudentLeave {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentName String
+  roomNumber  String
+  startDate   String
+  endDate     String
+  reason      String
+  skipMeals   Boolean  @default(true)
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model VisitorPass {
+  id                Int       @id @default(autoincrement())
+  passCode          String    @unique
+  studentId         Int
+  student           User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  visitorName       String
+  visitorPhone      String
+  purpose           String
+  expectedArrival   DateTime
+  expectedDeparture DateTime
+  status            String    @default("PENDING_APPROVAL") // PENDING_APPROVAL, APPROVED, CHECKED_IN, CHECKED_OUT, REJECTED, OVERSTAY
+  actualCheckIn     DateTime?
+  actualCheckOut    DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model FeeInvoice {
+  id            Int       @id @default(autoincrement())
+  invoiceNumber String    @unique
+  userId        Int
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  term          String    // e.g. "Spring 2026", "Fall 2026"
+  baseRent      Float
+  messFee       Float
+  amenitiesFee  Float
+  lateFine      Float     @default(0)
+  totalAmount   Float
+  dueDate       DateTime
+  status        String    @default("UNPAID") // UNPAID, PAID, OVERDUE
+  paidAt        DateTime?
+  paymentMethod String?
+  transactionId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
