@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
+    "build": "prisma generate && prisma db push",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:seed": "node src/seed.js",
@@ -14,6 +15,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
+    "prisma": "^6.4.1",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -21,7 +23,5 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0"
   },
-  "devDependencies": {
-    "prisma": "^6.4.1"
-  }
+  "devDependencies": {}
 }
