@@ -52,7 +52,7 @@ setInterval(async () => {
   }
 }, 60000);
 
-app.listen(PORT, async () => {
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`🚀 Smart Hostel Backend Server running on http://localhost:${PORT}`);
   try {
     await checkAndTriggerPredictiveAlerts(prisma);
