@@ -3,6 +3,7 @@ import {
   requestVisitorPass,
   updatePassApproval,
   scanOrVerifyPass,
+  stampGateAction,
   checkInVisitor,
   checkOutVisitor,
   getActiveVisitors,
@@ -15,6 +16,7 @@ const router = Router();
 router.post('/request', authenticate, requestVisitorPass);
 router.patch('/:id/approval', authenticate, updatePassApproval);
 router.get('/verify', authenticate, scanOrVerifyPass);
+router.post('/stamp-gate', authenticate, stampGateAction);
 router.post('/check-in', authenticate, checkInVisitor);
 router.post('/check-out', authenticate, checkOutVisitor);
 router.get('/active', authenticate, getActiveVisitors);

@@ -11,6 +11,7 @@ import PredictiveMaintenanceView from './components/PredictiveMaintenanceView';
 import SecurityView from './components/SecurityView';
 import FeeManagementView from './components/FeeManagementView';
 import HostelAssistantWidget from './components/HostelAssistantWidget';
+import ProfileEditModal from './components/ProfileEditModal';
 import api from './services/api';
 import { 
   Menu, 
@@ -22,7 +23,8 @@ import {
   ChevronRight,
   Shield,
   Activity,
-  Layers
+  Layers,
+  Edit3
 } from 'lucide-react';
 
 export default function App() {
@@ -30,6 +32,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('student-hub');
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   useEffect(() => {
     initAuth();
@@ -120,6 +123,7 @@ export default function App() {
         }}
         onSwitchRole={handleSwitchRole}
         onLogout={handleLogout}
+        onOpenProfile={() => setProfileModalOpen(true)}
         mobileOpen={mobileSidebarOpen}
         onCloseMobile={() => setMobileSidebarOpen(false)}
       />
@@ -180,20 +184,33 @@ export default function App() {
               <span>PostgreSQL & ML Online</span>
             </div>
 
-            {/* User Greeting & Quick Profile */}
+            {/* User Greeting & Clickable Edit Profile Pill */}
             <div className="flex items-center space-x-2 pl-2 border-l border-white/[0.06]">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center font-bold text-xs text-white shadow-md shadow-indigo-600/20">
-                {currentUser?.name ? currentUser.name.charAt(0) : 'U'}
-              </div>
-              <div className="hidden sm:block text-left text-xs">
-                <p className="font-bold text-slate-200 leading-tight truncate max-w-[130px]">{currentUser?.name}</p>
-                <p className="text-[10px] text-slate-500 font-mono leading-tight">{currentUser?.role}</p>
-              </div>
+              <button
+                onClick={() => setProfileModalOpen(true)}
+                title="Click to view & edit profile"
+                className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-white/[0.05] transition-all text-left group cursor-pointer"
+              >
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center font-bold text-xs text-white shadow-md shadow-indigo-600/20 group-hover:scale-105 transition-transform">
+                  {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div className="hidden sm:block text-left text-xs">
+                  <div className="flex items-center space-x-1">
+                    <p className="font-bold text-slate-200 leading-tight truncate max-w-[120px] group-hover:text-indigo-300 transition-colors">
+                      {currentUser?.name}
+                    </p>
+                    <Edit3 className="w-3 h-3 text-slate-500 group-hover:text-indigo-400" />
+                  </div>
+                  <p className="text-[10px] text-slate-500 font-mono leading-tight">
+                    {currentUser?.roomNumber ? `Room ${currentUser.roomNumber}` : currentUser?.role}
+                  </p>
+                </div>
+              </button>
 
               <button
                 onClick={handleLogout}
                 title="Log Out"
-                className="p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 transition-colors ml-1"
+                className="p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 transition-colors ml-1 cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
               </button>
@@ -204,7 +221,11 @@ export default function App() {
         {/* Dynamic Screen View Container */}
         <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto animate-fadeIn">
           {activeTab === 'student-hub' && (
-            <StudentHub currentUser={currentUser} onNavigate={setActiveTab} />
+            <StudentHub 
+              currentUser={currentUser} 
+              onNavigate={setActiveTab} 
+              onOpenProfile={() => setProfileModalOpen(true)}
+            />
           )}
 
           {activeTab === 'staff-hub' && (
@@ -243,6 +264,16 @@ export default function App() {
 
       {/* Floating AI Hostel Assistant Widget */}
       <HostelAssistantWidget currentUser={currentUser} />
+
+      {/* Profile Edit Modal */}
+      <ProfileEditModal
+        currentUser={currentUser}
+        isOpen={profileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+        onProfileUpdated={(updatedUser) => {
+          setCurrentUser(updatedUser);
+        }}
+      />
     </div>
   );
 }

@@ -25,6 +25,7 @@ export default function Sidebar({
   onSelectTab, 
   onSwitchRole, 
   onLogout,
+  onOpenProfile = () => {},
   mobileOpen = false,
   onCloseMobile = () => {}
 }) {
@@ -221,12 +222,16 @@ export default function Sidebar({
         {/* User Profile Footer */}
         <div className="p-3 border-t border-white/[0.06] bg-slate-950/40">
           <div className="flex items-center justify-between p-2 rounded-xl bg-slate-950/70 border border-white/[0.06]">
-            <div className="flex items-center space-x-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600/30 to-purple-600/30 border border-indigo-500/30 flex items-center justify-center font-bold text-xs text-indigo-300 shrink-0">
+            <div 
+              onClick={onOpenProfile}
+              title="Click to edit profile"
+              className="flex items-center space-x-2.5 overflow-hidden flex-1 cursor-pointer group"
+            >
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600/30 to-purple-600/30 border border-indigo-500/30 flex items-center justify-center font-bold text-xs text-indigo-300 shrink-0 group-hover:scale-105 transition-transform">
                 {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
               </div>
               <div className="overflow-hidden">
-                <p className="text-xs font-semibold text-slate-200 truncate">{currentUser?.name}</p>
+                <p className="text-xs font-semibold text-slate-200 truncate group-hover:text-indigo-300 transition-colors">{currentUser?.name}</p>
                 <p className="text-[10px] text-slate-400 font-mono truncate">
                   {currentUser?.roomNumber ? `Room ${currentUser.roomNumber}` : currentUser?.role}
                 </p>
@@ -236,7 +241,7 @@ export default function Sidebar({
             <button
               onClick={onLogout}
               title="Sign Out"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0 cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
             </button>

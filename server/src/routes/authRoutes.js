@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { login, register, getMe, switchDemoRole } from '../controllers/authController.js';
+import { login, register, getMe, switchDemoRole, updateProfile } from '../controllers/authController.js';
 import { authenticate } from '../middleware/auth.js';
 
 const router = Router();
@@ -7,6 +7,7 @@ const router = Router();
 router.post('/login', login);
 router.post('/register', register);
 router.get('/me', authenticate, getMe);
+router.put('/profile', authenticate, updateProfile);
 router.post('/switch-demo-role', switchDemoRole);
 
 export default router;

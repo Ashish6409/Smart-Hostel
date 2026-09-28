@@ -167,3 +167,68 @@ export async function switchDemoRole(req, res) {
     res.status(500).json({ error: 'Failed to switch demo role' });
   }
 }
+
+export async function updateProfile(req, res) {
+  try {
+    const userId = req.user.id;
+    const { name, phone, roomNumber, rollNumber, avatar, preferences } = req.body;
+
+    const updateData = {};
+    if (name && name.trim()) updateData.name = name.trim();
+    if (phone !== undefined) updateData.phone = phone.trim();
+    if (roomNumber !== undefined) updateData.roomNumber = roomNumber.trim();
+    if (rollNumber !== undefined) updateData.rollNumber = rollNumber.trim();
+    if (avatar !== undefined) updateData.avatar = avatar;
+
+    if (preferences) {
+      updateData.preference = {
+        upsert: {
+          create: {
+            studySchedule: preferences.studySchedule || 'FLEXIBLE',
+            sleepTime: preferences.sleepTime || '23:00',
+            cleanlinessLevel: preferences.cleanlinessLevel ? parseInt(preferences.cleanlinessLevel, 10) : 4,
+            noiseTolerance: preferences.noiseTolerance || 'MODERATE',
+            acPreference: Boolean(preferences.acPreference),
+            preferredFloor: preferences.preferredFloor ? parseInt(preferences.preferredFloor, 10) : 1
+          },
+          update: {
+            studySchedule: preferences.studySchedule,
+            sleepTime: preferences.sleepTime,
+            cleanlinessLevel: preferences.cleanlinessLevel ? parseInt(preferences.cleanlinessLevel, 10) : undefined,
+            noiseTolerance: preferences.noiseTolerance,
+            acPreference: preferences.acPreference !== undefined ? Boolean(preferences.acPreference) : undefined,
+            preferredFloor: preferences.preferredFloor ? parseInt(preferences.preferredFloor, 10) : undefined
+          }
+        }
+      };
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      include: { preference: true }
+    });
+
+    const token = generateToken(updatedUser);
+
+    res.json({
+      message: 'Profile updated successfully',
+      token,
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        phone: updatedUser.phone,
+        avatar: updatedUser.avatar,
+        roomNumber: updatedUser.roomNumber,
+        rollNumber: updatedUser.rollNumber,
+        preference: updatedUser.preference
+      }
+    });
+  } catch (err) {
+    console.error('Update profile error:', err);
+    res.status(500).json({ error: 'Failed to update user profile' });
+  }
+}
+

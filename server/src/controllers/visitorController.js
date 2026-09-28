@@ -1,8 +1,22 @@
 import prisma from '../prisma.js';
 
+/**
+ * Request either a Student Entry/Exit Outing Pass (EP-...)
+ * or a Guest Visitor Pass (VP-...)
+ */
 export async function requestVisitorPass(req, res) {
   try {
-    const { visitorName, visitorPhone, purpose, expectedArrival, expectedDeparture, targetStudentId } = req.body;
+    const { 
+      passType = 'STUDENT_OUTING', // 'STUDENT_OUTING' or 'GUEST_VISITOR'
+      visitorName, 
+      visitorPhone, 
+      purpose, 
+      expectedArrival, 
+      expectedDeparture, 
+      targetStudentId,
+      destination,
+      outingType // DAY_OUTING, NIGHT_OUT, WEEKEND_LEAVE, EMERGENCY_MEDICAL
+    } = req.body;
     
     // Determine student
     const studentId = targetStudentId ? parseInt(targetStudentId, 10) : req.user.id;
@@ -12,36 +26,61 @@ export async function requestVisitorPass(req, res) {
       return res.status(404).json({ error: 'Hostel student not found' });
     }
 
-    const passCode = `VP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const isStudentPass = passType === 'STUDENT_OUTING';
+    const prefix = isStudentPass ? 'EP' : 'VP';
+    const passCode = `${prefix}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
-    // If requested by student themselves, auto-approve; else require approval
-    const isStudentSelf = req.user && req.user.id === studentId;
-    const status = isStudentSelf ? 'APPROVED' : 'PENDING_APPROVAL';
+    // Format purpose and phone
+    const resolvedName = isStudentPass ? (student.name) : (visitorName || 'Guest Visitor');
+    const resolvedPhone = isStudentPass 
+      ? (visitorPhone || student.phone || '9876543210') 
+      : (visitorPhone || '9876543210');
+    
+    const formattedPurpose = isStudentPass
+      ? `[OUTING: ${outingType || 'DAY_OUTING'}] ${destination || purpose || 'Campus Outing'}`
+      : `[GUEST] ${purpose || 'Guest Visit'}`;
+
+    // For student passes:
+    // expectedArrival = departure time from hostel
+    // expectedDeparture = expected return / curfew time
+    const departureTime = expectedArrival ? new Date(expectedArrival) : new Date();
+    
+    // Default curfew: 9:30 PM today or +4 hours
+    let returnCurfewTime;
+    if (expectedDeparture) {
+      returnCurfewTime = new Date(expectedDeparture);
+    } else {
+      returnCurfewTime = new Date();
+      returnCurfewTime.setHours(21, 30, 0, 0); // 09:30 PM curfew
+      if (returnCurfewTime <= departureTime) {
+        returnCurfewTime = new Date(departureTime.getTime() + 4 * 60 * 60 * 1000);
+      }
+    }
 
     const pass = await prisma.visitorPass.create({
       data: {
         passCode,
         studentId: student.id,
-        visitorName,
-        visitorPhone,
-        purpose,
-        expectedArrival: new Date(expectedArrival || Date.now()),
-        expectedDeparture: new Date(expectedDeparture || Date.now() + 4 * 60 * 60 * 1000),
-        status
+        visitorName: resolvedName,
+        visitorPhone: resolvedPhone,
+        purpose: formattedPurpose,
+        expectedArrival: departureTime,
+        expectedDeparture: returnCurfewTime,
+        status: 'APPROVED' // Pre-approved for instant gate clearance
       },
       include: {
-        student: { select: { name: true, roomNumber: true, rollNumber: true } }
+        student: { select: { id: true, name: true, roomNumber: true, rollNumber: true, phone: true } }
       }
     });
 
     res.status(201).json({
-      message: 'Visitor pass created successfully',
+      message: `${isStudentPass ? 'Student Outing Pass' : 'Visitor Pass'} created successfully`,
       passCode,
       pass
     });
   } catch (err) {
-    console.error('Error creating visitor pass:', err);
-    res.status(500).json({ error: 'Failed to create visitor pass' });
+    console.error('Error creating pass:', err);
+    res.status(500).json({ error: 'Failed to create pass' });
   }
 }
 
@@ -53,43 +92,89 @@ export async function updatePassApproval(req, res) {
     const pass = await prisma.visitorPass.update({
       where: { id: parseInt(id, 10) },
       data: { status },
-      include: { student: { select: { name: true, roomNumber: true } } }
+      include: { student: { select: { name: true, roomNumber: true, rollNumber: true } } }
     });
 
-    res.json({ message: `Visitor pass ${status.toLowerCase()}`, pass });
+    res.json({ message: `Pass ${status.toLowerCase()}`, pass });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update pass approval' });
   }
 }
 
+/**
+ * Scan or Verify Pass by Code (supports raw code or QR json)
+ */
 export async function scanOrVerifyPass(req, res) {
   try {
-    const { passCode } = req.query;
+    let { passCode } = req.query;
     if (!passCode) {
       return res.status(400).json({ error: 'Pass code or QR token is required' });
     }
 
+    passCode = passCode.trim();
+
+    // Check if the scanned string is JSON from a QR code
+    if (passCode.startsWith('{') && passCode.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(passCode);
+        if (parsed.passCode) passCode = parsed.passCode;
+      } catch (e) {
+        // keep as is
+      }
+    }
+
     const pass = await prisma.visitorPass.findUnique({
-      where: { passCode: passCode.trim().toUpperCase() },
+      where: { passCode: passCode.toUpperCase() },
       include: {
-        student: { select: { name: true, roomNumber: true, phone: true, rollNumber: true } }
+        student: { select: { id: true, name: true, roomNumber: true, phone: true, rollNumber: true } }
       }
     });
 
     if (!pass) {
-      return res.status(404).json({ valid: false, error: 'Invalid QR Pass: No matching record found.' });
+      return res.status(404).json({ valid: false, error: 'Invalid QR Pass: No matching pass found in hostel records.' });
     }
 
+    const isStudentPass = pass.passCode.startsWith('EP-') || pass.purpose.includes('[OUTING:');
     const now = new Date();
-    const isExpired = new Date(pass.expectedDeparture) < now && pass.status !== 'CHECKED_IN';
-    const isOverstay = pass.status === 'CHECKED_IN' && new Date(pass.expectedDeparture) < now;
+
+    // Check Curfew / Overstay logic
+    const curfewTime = new Date(pass.expectedDeparture);
+    const isPastCurfew = now > curfewTime;
+    const minutesLate = isPastCurfew ? Math.round((now.getTime() - curfewTime.getTime()) / 60000) : 0;
+
+    let nextAllowedAction = null;
+    let actionLabel = '';
+
+    if (isStudentPass) {
+      if (pass.status === 'APPROVED') {
+        nextAllowedAction = 'EXIT';
+        actionLabel = 'Stamp Exit (Student Leaving Campus)';
+      } else if (pass.status === 'CHECKED_OUT') {
+        nextAllowedAction = 'ENTRY';
+        actionLabel = isPastCurfew 
+          ? `Stamp Entry (Late Return: ${minutesLate}m late)` 
+          : 'Stamp Entry (Student Returning to Campus)';
+      }
+    } else {
+      // Guest Visitor Pass
+      if (pass.status === 'APPROVED') {
+        nextAllowedAction = 'ENTRY';
+        actionLabel = 'Stamp Entry (Guest Check-In)';
+      } else if (pass.status === 'CHECKED_IN') {
+        nextAllowedAction = 'EXIT';
+        actionLabel = 'Stamp Exit (Guest Check-Out)';
+      }
+    }
 
     res.json({
-      valid: pass.status === 'APPROVED' || pass.status === 'CHECKED_IN',
+      valid: true,
       pass,
-      isExpired,
-      isOverstay,
-      status: isOverstay ? 'OVERSTAY' : pass.status
+      isStudentPass,
+      isPastCurfew,
+      minutesLate,
+      nextAllowedAction,
+      actionLabel,
+      status: pass.status
     });
   } catch (err) {
     console.error('Error verifying pass:', err);
@@ -97,67 +182,84 @@ export async function scanOrVerifyPass(req, res) {
   }
 }
 
-export async function checkInVisitor(req, res) {
+/**
+ * Stamp Gate Action (EXIT or ENTRY)
+ */
+export async function stampGateAction(req, res) {
   try {
-    const { passCode } = req.body;
+    const { passCode, action } = req.body; // action: 'EXIT' or 'ENTRY'
+    if (!passCode) {
+      return res.status(400).json({ error: 'Pass code is required' });
+    }
+
     const pass = await prisma.visitorPass.findUnique({
-      where: { passCode: passCode.trim().toUpperCase() }
+      where: { passCode: passCode.trim().toUpperCase() },
+      include: { student: true }
     });
 
     if (!pass) {
-      return res.status(404).json({ error: 'Visitor pass not found' });
+      return res.status(404).json({ error: 'Pass not found' });
     }
 
-    if (pass.status !== 'APPROVED') {
-      return res.status(400).json({ error: `Cannot check in pass with status: ${pass.status}` });
+    const isStudentPass = pass.passCode.startsWith('EP-') || pass.purpose.includes('[OUTING:');
+    const now = new Date();
+    let newStatus = pass.status;
+    const updateData = {};
+
+    if (action === 'EXIT') {
+      newStatus = 'CHECKED_OUT';
+      updateData.status = 'CHECKED_OUT';
+      updateData.actualCheckOut = now;
+    } else if (action === 'ENTRY') {
+      newStatus = 'CHECKED_IN';
+      updateData.status = 'CHECKED_IN';
+      updateData.actualCheckIn = now;
     }
 
     const updated = await prisma.visitorPass.update({
       where: { id: pass.id },
-      data: {
-        status: 'CHECKED_IN',
-        actualCheckIn: new Date()
-      },
-      include: { student: true }
+      data: updateData,
+      include: { student: { select: { id: true, name: true, roomNumber: true, rollNumber: true, phone: true } } }
     });
 
-    res.json({ message: `Checked in visitor ${pass.visitorName}`, pass: updated });
+    // Check if entry was late
+    const isLate = action === 'ENTRY' && isStudentPass && now > new Date(pass.expectedDeparture);
+    const minutesLate = isLate ? Math.round((now.getTime() - new Date(pass.expectedDeparture).getTime()) / 60000) : 0;
+
+    res.json({
+      message: `Successfully stamped ${action} for ${isStudentPass ? pass.student?.name : pass.visitorName}`,
+      pass: updated,
+      isLate,
+      minutesLate
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to check in visitor' });
+    console.error('Error stamping gate action:', err);
+    res.status(500).json({ error: 'Failed to stamp gate action' });
   }
+}
+
+export async function checkInVisitor(req, res) {
+  req.body.action = 'ENTRY';
+  return stampGateAction(req, res);
 }
 
 export async function checkOutVisitor(req, res) {
-  try {
-    const { passCode } = req.body;
-    const pass = await prisma.visitorPass.findUnique({
-      where: { passCode: passCode.trim().toUpperCase() }
-    });
-
-    if (!pass) {
-      return res.status(404).json({ error: 'Visitor pass not found' });
-    }
-
-    const updated = await prisma.visitorPass.update({
-      where: { id: pass.id },
-      data: {
-        status: 'CHECKED_OUT',
-        actualCheckOut: new Date()
-      },
-      include: { student: true }
-    });
-
-    res.json({ message: `Checked out visitor ${pass.visitorName}`, pass: updated });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to check out visitor' });
-  }
+  req.body.action = 'EXIT';
+  return stampGateAction(req, res);
 }
 
+/**
+ * Gate Guard Live Roster
+ */
 export async function getActiveVisitors(req, res) {
   try {
-    const active = await prisma.visitorPass.findMany({
+    const now = new Date();
+
+    // 1. Visitors inside
+    const visitorsInside = await prisma.visitorPass.findMany({
       where: {
-        status: 'CHECKED_IN'
+        status: 'CHECKED_IN',
+        passCode: { startsWith: 'VP-' }
       },
       include: {
         student: { select: { name: true, roomNumber: true, phone: true } }
@@ -165,20 +267,48 @@ export async function getActiveVisitors(req, res) {
       orderBy: { actualCheckIn: 'desc' }
     });
 
-    const now = new Date();
-    const formatted = active.map(p => ({
+    // 2. Students currently outside
+    const studentsOutside = await prisma.visitorPass.findMany({
+      where: {
+        status: 'CHECKED_OUT',
+        passCode: { startsWith: 'EP-' }
+      },
+      include: {
+        student: { select: { name: true, roomNumber: true, rollNumber: true, phone: true } }
+      },
+      orderBy: { actualCheckOut: 'desc' }
+    });
+
+    const formattedVisitors = visitorsInside.map(p => ({
       ...p,
       isOverstay: new Date(p.expectedDeparture) < now,
       minutesInside: p.actualCheckIn ? Math.round((now.getTime() - new Date(p.actualCheckIn).getTime()) / 60000) : 0
     }));
 
+    const formattedStudents = studentsOutside.map(p => {
+      const curfewTime = new Date(p.expectedDeparture);
+      const isPastCurfew = now > curfewTime;
+      const minutesOutside = p.actualCheckOut ? Math.round((now.getTime() - new Date(p.actualCheckOut).getTime()) / 60000) : 0;
+      const minutesLate = isPastCurfew ? Math.round((now.getTime() - curfewTime.getTime()) / 60000) : 0;
+      return {
+        ...p,
+        isPastCurfew,
+        minutesOutside,
+        minutesLate
+      };
+    });
+
     res.json({
-      activeCount: formatted.length,
-      overstayCount: formatted.filter(p => p.isOverstay).length,
-      visitors: formatted
+      visitorsInside: formattedVisitors,
+      studentsOutside: formattedStudents,
+      activeVisitorsCount: formattedVisitors.length,
+      studentsOutsideCount: formattedStudents.length,
+      overstayCount: formattedVisitors.filter(p => p.isOverstay).length + formattedStudents.filter(p => p.isPastCurfew).length,
+      visitors: formattedVisitors // for backward compatibility
     });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch active visitors' });
+    console.error('Error fetching gate roster:', err);
+    res.status(500).json({ error: 'Failed to fetch active gate roster' });
   }
 }
 
@@ -192,14 +322,14 @@ export async function getAllVisitorPasses(req, res) {
     const passes = await prisma.visitorPass.findMany({
       where,
       include: {
-        student: { select: { name: true, roomNumber: true, rollNumber: true } }
+        student: { select: { name: true, roomNumber: true, rollNumber: true, phone: true } }
       },
       orderBy: { createdAt: 'desc' },
-      take: 50
+      take: 60
     });
 
     res.json({ passes });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch visitor passes' });
+    res.status(500).json({ error: 'Failed to fetch passes' });
   }
 }

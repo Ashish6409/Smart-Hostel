@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 
-export default function StudentHub({ currentUser, onNavigate }) {
+export default function StudentHub({ currentUser, onNavigate, onOpenProfile = () => {} }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -55,23 +55,37 @@ export default function StudentHub({ currentUser, onNavigate }) {
               <span>Roll No: <strong className="font-mono text-slate-200">{currentUser?.rollNumber || 'CS23B042'}</strong></span>
               <span>•</span>
               <span>Allotted: <strong className="text-indigo-400 font-semibold">Room {currentUser?.roomNumber || 'A-104'} (Block A)</strong></span>
+              <span>•</span>
+              <button
+                onClick={onOpenProfile}
+                className="text-indigo-400 hover:text-indigo-300 font-semibold underline cursor-pointer"
+              >
+                Edit Profile
+              </button>
             </p>
           </div>
 
-          <div className="flex items-center space-x-3 shrink-0">
+          <div className="flex items-center space-x-2.5 shrink-0 flex-wrap gap-y-2">
+            <button
+              onClick={onOpenProfile}
+              className="px-3.5 py-2.5 bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white font-semibold text-xs rounded-xl border border-white/[0.08] transition-all flex items-center space-x-1.5 cursor-pointer"
+            >
+              <User className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Edit Profile</span>
+            </button>
             <button
               onClick={() => onNavigate('complaints')}
-              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-indigo-600/25 transition-all flex items-center space-x-2 cursor-pointer"
+              className="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-indigo-600/25 transition-all flex items-center space-x-1.5 cursor-pointer"
             >
-              <AlertTriangle className="w-4 h-4" />
+              <AlertTriangle className="w-3.5 h-3.5" />
               <span>Report Issue</span>
             </button>
             <button
               onClick={() => onNavigate('security')}
-              className="px-4 py-2.5 bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white font-semibold text-xs rounded-xl border border-white/[0.08] transition-all flex items-center space-x-2 cursor-pointer"
+              className="px-3.5 py-2.5 bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white font-semibold text-xs rounded-xl border border-white/[0.08] transition-all flex items-center space-x-1.5 cursor-pointer"
             >
-              <QrCode className="w-4 h-4 text-indigo-400" />
-              <span>Visitor Pass</span>
+              <QrCode className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Gate QR Pass</span>
             </button>
           </div>
         </div>
