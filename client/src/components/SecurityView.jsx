@@ -227,11 +227,20 @@ export default function SecurityView({ currentUser }) {
     // Give DOM time to render #qr-reader
     setTimeout(async () => {
       try {
+        const cameras = await Html5Qrcode.getCameras().catch(() => []);
         const html5QrCode = new Html5Qrcode('qr-reader');
         qrScannerRef.current = html5QrCode;
 
+        // Choose camera: prefer back camera on phones, or primary webcam on laptops
+        let cameraConfig;
+        if (cameras && cameras.length > 0) {
+          cameraConfig = cameras[cameras.length - 1].id;
+        } else {
+          cameraConfig = { facingMode: 'user' };
+        }
+
         await html5QrCode.start(
-          { facingMode: 'environment' },
+          cameraConfig,
           {
             fps: 10,
             qrbox: { width: 250, height: 250 }
@@ -246,9 +255,24 @@ export default function SecurityView({ currentUser }) {
           }
         );
       } catch (err) {
-        console.error('Camera init error:', err);
-        setCameraError('Could not access camera. Please allow camera permissions or enter the code manually.');
-        setCameraActive(false);
+        console.warn('Primary camera mode failed, attempting generic webcam:', err);
+        try {
+          const html5QrCode = qrScannerRef.current || new Html5Qrcode('qr-reader');
+          qrScannerRef.current = html5QrCode;
+          await html5QrCode.start(
+            { facingMode: 'user' },
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            (decodedText) => {
+              handleVerifyCode(decodedText);
+              stopCameraScanner();
+            },
+            () => {}
+          );
+        } catch (fallbackErr) {
+          console.error('Camera init error:', fallbackErr);
+          setCameraError('Webcam not detected or permission denied. You can enter pass code manually or use 1-click test buttons below.');
+          setCameraActive(false);
+        }
       }
     }, 200);
   };
