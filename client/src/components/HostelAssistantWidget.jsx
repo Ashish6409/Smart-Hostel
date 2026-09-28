@@ -186,11 +186,11 @@ export default function HostelAssistantWidget({ currentUser }) {
           2. INTERACTIVE ASSISTANT CHAT WINDOW
       ======================================================== */}
       {isOpen && (
-        <div className="fixed bottom-6 right-4 sm:right-6 z-50 w-[380px] sm:w-[420px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-6rem)] bg-slate-900/95 border border-indigo-500/30 rounded-3xl shadow-2xl backdrop-blur-xl flex flex-col overflow-hidden animate-scaleUp">
+        <div className="fixed bottom-6 right-4 sm:right-6 z-50 w-[380px] sm:w-[420px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-6rem)] bg-[#0c101c]/95 border border-white/[0.1] rounded-3xl shadow-2xl backdrop-blur-2xl flex flex-col overflow-hidden animate-scaleUp">
           {/* Header */}
-          <div className="bg-gradient-to-r from-slate-900 via-indigo-950/60 to-slate-900 border-b border-slate-800 p-4 flex items-center justify-between">
+          <div className="bg-gradient-to-r from-[#0c101c] via-indigo-950/40 to-[#0c101c] border-b border-white/[0.06] p-4 flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-2xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shadow-inner">
+              <div className="w-9 h-9 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-inner">
                 <Bot className="w-5 h-5 text-indigo-300" />
               </div>
               <div>
@@ -198,21 +198,21 @@ export default function HostelAssistantWidget({ currentUser }) {
                   <h3 className="font-bold text-white text-sm">SmartHostel Assistant</h3>
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 </div>
-                <p className="text-[10px] text-indigo-300 font-mono">Live Database & Policy Aware</p>
+                <p className="text-[10px] text-indigo-300/80 font-mono">Live Database & Policy Aware</p>
               </div>
             </div>
 
             <div className="flex items-center space-x-1">
               <button
                 onClick={handleClearHistory}
-                className="w-7 h-7 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+                className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                 title="Restart conversation"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-7 h-7 rounded-lg bg-slate-800/80 hover:bg-rose-500/20 hover:text-rose-300 text-slate-400 flex items-center justify-center transition-colors"
+                className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-rose-500/20 hover:text-rose-300 text-slate-400 flex items-center justify-center transition-colors cursor-pointer"
                 title="Close chat"
               >
                 <X className="w-4 h-4" />
@@ -221,13 +221,13 @@ export default function HostelAssistantWidget({ currentUser }) {
           </div>
 
           {/* Quick Prompts Bar */}
-          <div className="px-3.5 py-2 bg-slate-950/70 border-b border-slate-800/80 overflow-x-auto scrollbar-none flex items-center space-x-2">
+          <div className="px-3.5 py-2 bg-[#080c16]/70 border-b border-white/[0.06] overflow-x-auto scrollbar-none flex items-center space-x-2">
             {quickPrompts.map((qp, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSend(qp.text)}
                 disabled={loading}
-                className="shrink-0 px-2.5 py-1 rounded-full bg-slate-900 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-slate-800 text-[11px] font-medium transition-all"
+                className="shrink-0 px-2.5 py-1 rounded-full bg-[#121826] hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-white/[0.06] text-[11px] font-medium transition-all cursor-pointer"
               >
                 {qp.label}
               </button>
@@ -295,7 +295,7 @@ export default function HostelAssistantWidget({ currentUser }) {
           </div>
 
           {/* Input Footer */}
-          <div className="p-3 bg-slate-950/90 border-t border-slate-800 space-y-1.5">
+          <div className="p-3 bg-[#080c16]/95 border-t border-white/[0.06] space-y-1.5">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -310,13 +310,13 @@ export default function HostelAssistantWidget({ currentUser }) {
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Ask about room, mess, curfew, fees, repairs..."
                 disabled={loading}
-                className="flex-1 bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors"
+                className="flex-1 bg-[#0c101c] border border-white/[0.08] focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors"
               />
 
               <button
                 type="submit"
                 disabled={!inputValue.trim() || loading}
-                className="w-9 h-9 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white flex items-center justify-center transition-all shrink-0 shadow-md shadow-indigo-600/30"
+                className="w-9 h-9 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white flex items-center justify-center transition-all shrink-0 shadow-md shadow-indigo-600/30 cursor-pointer"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -324,7 +324,7 @@ export default function HostelAssistantWidget({ currentUser }) {
 
             <div className="flex items-center justify-between text-[10px] text-slate-500 px-1">
               <span>Google Gemini AI & Local Knowledge Base</span>
-              <span className="font-mono">SmartHostel v2.0</span>
+              <span className="font-mono text-indigo-400/80">SmartHostel v2.0</span>
             </div>
           </div>
         </div>
