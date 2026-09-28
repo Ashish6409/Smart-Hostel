@@ -11,6 +11,7 @@ import maintenanceRoutes from './routes/maintenanceRoutes.js';
 import visitorRoutes from './routes/visitorRoutes.js';
 import feeRoutes from './routes/feeRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import assistantRoutes from './routes/assistantRoutes.js';
 import { checkAndTriggerPredictiveAlerts } from './engines/predictiveMaintenanceEngine.js';
 import prisma from './prisma.js';
 
@@ -32,6 +33,7 @@ app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api/visitors', visitorRoutes);
 app.use('/api/fees', feeRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/assistant', assistantRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({

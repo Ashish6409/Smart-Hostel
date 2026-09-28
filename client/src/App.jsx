@@ -10,6 +10,7 @@ import MessDemandView from './components/MessDemandView';
 import PredictiveMaintenanceView from './components/PredictiveMaintenanceView';
 import SecurityView from './components/SecurityView';
 import FeeManagementView from './components/FeeManagementView';
+import HostelAssistantWidget from './components/HostelAssistantWidget';
 import api from './services/api';
 
 export default function App() {
@@ -154,6 +155,9 @@ export default function App() {
           )}
         </main>
       </div>
+
+      {/* Floating AI Hostel Assistant Widget */}
+      <HostelAssistantWidget currentUser={currentUser} />
     </div>
   );
 }
