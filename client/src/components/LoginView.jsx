@@ -80,6 +80,14 @@ export default function LoginView({ onLoginSuccess }) {
     }
   ];
 
+  const getDetailedError = (err, fallback) => {
+    if (err.response?.data?.error) return err.response.data.error;
+    if (err.message === 'Network Error' || !err.response) {
+      return 'Cannot reach backend API. If on deployed link, Render free server may be waking up (please wait ~40 seconds) or verify VITE_API_URL.';
+    }
+    return fallback;
+  };
+
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
@@ -94,7 +102,7 @@ export default function LoginView({ onLoginSuccess }) {
       localStorage.setItem('smart_hostel_token', res.data.token);
       onLoginSuccess(res.data.user);
     } catch (err) {
-      setErrorMsg(err.response?.data?.error || 'Authentication failed. Please verify credentials.');
+      setErrorMsg(getDetailedError(err, 'Authentication failed. Please verify credentials.'));
     } finally {
       setLoading(false);
     }
@@ -115,7 +123,7 @@ export default function LoginView({ onLoginSuccess }) {
       localStorage.setItem('smart_hostel_token', res.data.token);
       onLoginSuccess(res.data.user);
     } catch (err) {
-      setErrorMsg('Failed to authenticate with demo account.');
+      setErrorMsg(getDetailedError(err, 'Failed to authenticate with demo account.'));
     } finally {
       setLoading(false);
     }
