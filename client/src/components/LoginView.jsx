@@ -159,17 +159,22 @@ export default function LoginView({ onLoginSuccess }) {
 
   return (
     <div className="min-h-screen bg-[#070a12] text-slate-100 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 selection:bg-indigo-500 selection:text-white relative overflow-hidden">
-      {/* Immersive Architectural Campus Background */}
+      {/* Immersive Architectural Campus Background (Zoomed Out & Balanced) */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none transform scale-105 transition-transform duration-1000"
-        style={{ backgroundImage: `url(${campusBg})` }}
+        className="absolute inset-0 bg-cover bg-no-repeat pointer-events-none transition-transform duration-700 brightness-95 contrast-105 saturate-110"
+        style={{ 
+          backgroundImage: `url(${campusBg})`,
+          backgroundPosition: 'center 35%'
+        }}
       />
-      {/* Deep Obsidian Navy Gradient & Vignette for Contrast & Readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#070a12]/85 via-[#090d18]/90 to-[#070a12]/95 backdrop-blur-[2px] pointer-events-none" />
 
-      {/* Ambient background glows */}
-      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-96 sm:w-[650px] h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 left-1/4 w-80 h-80 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
+      {/* Balanced Cinematic Lighting: Soft Vignette & Subtle Navy Tint */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-950/45 via-[#090d18]/65 to-[#060911]/90 pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_25%,_rgba(7,10,18,0.70)_100%)] pointer-events-none" />
+
+      {/* Subtle Ambient Color Accents */}
+      <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[520px] h-64 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header Brand */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center relative z-10">
