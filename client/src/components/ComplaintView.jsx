@@ -115,9 +115,9 @@ export default function ComplaintView({ currentUser }) {
       <div>
         <div className="flex items-center space-x-2 text-indigo-400 font-semibold text-xs uppercase tracking-wider">
           <Zap className="w-4 h-4" />
-          <span>Pillar 2 • Natural Language Issue Triage & Routing</span>
+          <span>Intelligent Issue Triage & Routing</span>
         </div>
-        <h1 className="text-2xl font-extrabold text-white mt-1">AI Complaint Management</h1>
+        <h1 className="text-2xl font-extrabold text-white mt-1">Smart Complaint Management</h1>
         <p className="text-xs text-slate-400">
           Submits plain language text, automatically classifies Category, Priority, and Location, and dispatches to appropriate staff.
         </p>
@@ -195,7 +195,7 @@ export default function ComplaintView({ currentUser }) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-bold text-white">Active Complaint Records</h2>
-            <p className="text-xs text-slate-400">Chronological ticket ledger with AI triage metadata</p>
+            <p className="text-xs text-slate-400">Chronological ticket ledger with smart triage metadata</p>
           </div>
 
           {/* Category Filter */}

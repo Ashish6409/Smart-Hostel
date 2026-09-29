@@ -181,7 +181,7 @@ export default function App() {
             {/* Live Operational Status Badge */}
             <div className="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-2 animate-pulse" />
-              <span>PostgreSQL & ML Online</span>
+              <span>System Operational</span>
             </div>
 
             {/* User Greeting & Clickable Edit Profile Pill */}

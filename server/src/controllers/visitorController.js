@@ -123,15 +123,33 @@ export async function scanOrVerifyPass(req, res) {
       }
     }
 
-    const pass = await prisma.visitorPass.findUnique({
-      where: { passCode: passCode.toUpperCase() },
+    // Extract (EP|VP)-... code if embedded in JSON, URL, or raw string
+    const match = passCode.match(/(EP|VP)-[A-Z0-9\-]+/i);
+    const normalizedCode = match ? match[0].toUpperCase() : passCode.toUpperCase();
+
+    let pass = await prisma.visitorPass.findUnique({
+      where: { passCode: normalizedCode },
       include: {
         student: { select: { id: true, name: true, roomNumber: true, phone: true, rollNumber: true } }
       }
     });
 
     if (!pass) {
-      return res.status(404).json({ valid: false, error: 'Invalid QR Pass: No matching pass found in hostel records.' });
+      pass = await prisma.visitorPass.findFirst({
+        where: {
+          passCode: {
+            equals: normalizedCode,
+            mode: 'insensitive'
+          }
+        },
+        include: {
+          student: { select: { id: true, name: true, roomNumber: true, phone: true, rollNumber: true } }
+        }
+      });
+    }
+
+    if (!pass) {
+      return res.status(404).json({ valid: false, error: `Invalid QR Pass: No matching pass found for "${normalizedCode}". Please verify code or create a new pass.` });
     }
 
     const isStudentPass = pass.passCode.startsWith('EP-') || pass.purpose.includes('[OUTING:');
@@ -154,6 +172,8 @@ export async function scanOrVerifyPass(req, res) {
         actionLabel = isPastCurfew 
           ? `Stamp Entry (Late Return: ${minutesLate}m late)` 
           : 'Stamp Entry (Student Returning to Campus)';
+      } else if (pass.status === 'CHECKED_IN') {
+        actionLabel = 'Completed: Student has already returned safely to campus.';
       }
     } else {
       // Guest Visitor Pass
@@ -163,6 +183,8 @@ export async function scanOrVerifyPass(req, res) {
       } else if (pass.status === 'CHECKED_IN') {
         nextAllowedAction = 'EXIT';
         actionLabel = 'Stamp Exit (Guest Check-Out)';
+      } else if (pass.status === 'CHECKED_OUT') {
+        actionLabel = 'Completed: Visitor has already checked out of campus.';
       }
     }
 
@@ -192,13 +214,28 @@ export async function stampGateAction(req, res) {
       return res.status(400).json({ error: 'Pass code is required' });
     }
 
-    const pass = await prisma.visitorPass.findUnique({
-      where: { passCode: passCode.trim().toUpperCase() },
+    const match = passCode.trim().match(/(EP|VP)-[A-Z0-9\-]+/i);
+    const normalizedCode = match ? match[0].toUpperCase() : passCode.trim().toUpperCase();
+
+    let pass = await prisma.visitorPass.findUnique({
+      where: { passCode: normalizedCode },
       include: { student: true }
     });
 
     if (!pass) {
-      return res.status(404).json({ error: 'Pass not found' });
+      pass = await prisma.visitorPass.findFirst({
+        where: {
+          passCode: {
+            equals: normalizedCode,
+            mode: 'insensitive'
+          }
+        },
+        include: { student: true }
+      });
+    }
+
+    if (!pass) {
+      return res.status(404).json({ error: `Pass "${normalizedCode}" not found in records.` });
     }
 
     const isStudentPass = pass.passCode.startsWith('EP-') || pass.purpose.includes('[OUTING:');

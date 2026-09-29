@@ -166,17 +166,23 @@ export default function SecurityView({ currentUser }) {
 
   // Security Verification
   const handleVerifyCode = async (codeToVerify) => {
-    let code = (codeToVerify || passCodeInput).trim();
-    if (!code) return;
+    let raw = (codeToVerify || passCodeInput).trim();
+    if (!raw) return;
 
-    // Check if JSON QR string
-    if (code.startsWith('{') && code.endsWith('}')) {
+    // Check if JSON QR string or extract code
+    let code = raw;
+    if (raw.startsWith('{') && raw.endsWith('}')) {
       try {
-        const parsed = JSON.parse(code);
+        const parsed = JSON.parse(raw);
         if (parsed.passCode) code = parsed.passCode;
       } catch (e) {
         // ignore
       }
+    }
+
+    const match = code.match(/(EP|VP)-[A-Z0-9\-]+/i);
+    if (match) {
+      code = match[0].toUpperCase();
     }
 
     setVerifying(true);
@@ -289,17 +295,9 @@ export default function SecurityView({ currentUser }) {
     setCameraActive(false);
   };
 
-  // Format QR Code Payload for Student Pass
+  // Format QR Code Payload for Instant Camera Scanning
   const getQRPayload = (pass) => {
-    return JSON.stringify({
-      passCode: pass.passCode,
-      type: pass.passCode.startsWith('EP-') ? 'STUDENT_OUTING' : 'GUEST_VISIT',
-      studentName: pass.student?.name,
-      rollNumber: pass.student?.rollNumber,
-      roomNumber: pass.student?.roomNumber,
-      curfew: pass.expectedDeparture,
-      status: pass.status
-    });
+    return pass?.passCode || '';
   };
 
   return (

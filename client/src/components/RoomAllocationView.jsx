@@ -374,7 +374,7 @@ export default function RoomAllocationView({ currentUser, onSwitchRole }) {
               }`}
             >
               <Sparkles className="w-4 h-4" />
-              <span>AI Unassigned Queue ({adminQueue.length})</span>
+              <span>Unassigned Queue ({adminQueue.length})</span>
             </button>
 
             <button
@@ -578,7 +578,7 @@ export default function RoomAllocationView({ currentUser, onSwitchRole }) {
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center space-x-2">
                     <Sparkles className="w-4 h-4 text-indigo-400" />
-                    <span>AI Compatibility Allocation Queue ({adminQueue.length})</span>
+                    <span>Compatibility Allocation Queue ({adminQueue.length})</span>
                   </h2>
                   <p className="text-xs text-slate-400 mt-0.5">
                     Vector-distance model matches each student's sleep schedule, cleanliness, and study habits with available vacant rooms.
@@ -954,7 +954,7 @@ export default function RoomAllocationView({ currentUser, onSwitchRole }) {
                       {/* Lifestyle Preferences */}
                       <div className="pt-2 border-t border-slate-800/80 space-y-3">
                         <span className="text-[11px] font-bold text-slate-400 block">
-                          AI Roommate Matching Profile:
+                          Roommate Compatibility Profile:
                         </span>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">

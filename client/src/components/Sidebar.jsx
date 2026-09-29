@@ -46,7 +46,7 @@ export default function Sidebar({
       return [
         { id: 'student-hub', label: 'My Hub', icon: Home, badge: 'Home' },
         { id: 'rooms', label: 'Room Allotment', icon: Bed, badge: 'Allotment' },
-        { id: 'complaints', label: 'Report Issue (AI)', icon: AlertTriangle },
+        { id: 'complaints', label: 'Report Issue', icon: AlertTriangle },
         { id: 'mess', label: 'Mess & Leave Pass', icon: Utensils },
         { id: 'security', label: 'Visitor QR Pass', icon: QrCode },
         { id: 'fees', label: 'Hostel Fees', icon: CreditCard }
@@ -69,10 +69,10 @@ export default function Sidebar({
     // Default for ADMIN & WARDEN
     return [
       { id: 'overview', label: 'Executive Overview', icon: LayoutDashboard },
-      { id: 'rooms', label: 'Room Allocation & AI', icon: Bed, badge: 'Auto' },
-      { id: 'maintenance', label: 'Predictive Maintenance', icon: Activity, badge: 'AI Alerts' },
+      { id: 'rooms', label: 'Room Allocation', icon: Bed, badge: 'Auto' },
+      { id: 'maintenance', label: 'Predictive Maintenance', icon: Activity, badge: 'Alerts' },
       { id: 'complaints', label: 'Complaint Management', icon: AlertTriangle },
-      { id: 'mess', label: 'Mess Demand ML', icon: Utensils },
+      { id: 'mess', label: 'Mess Demand Forecast', icon: Utensils },
       { id: 'security', label: 'Gate Security & QR', icon: ShieldCheck },
       { id: 'fees', label: 'Fee Invoicing Ledger', icon: CreditCard }
     ];

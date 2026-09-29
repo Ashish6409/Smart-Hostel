@@ -34,7 +34,7 @@ export default function HostelAssistantWidget({ currentUser }) {
         {
           id: 'welcome',
           sender: 'assistant',
-          text: `👋 Hi **${currentUser.name || 'Resident'}**! I am your **SmartHostel AI Assistant**.\n\nI have access to your live hostel records (room assignment, fee invoices, active complaints) and official campus regulations. How can I help you today?`,
+          text: `👋 Hi **${currentUser.name || 'Resident'}**! I am your **SmartHostel Campus Support Assistant**.\n\nI have access to your live hostel records (room assignment, fee invoices, active complaints) and official campus regulations. How can I help you today?`,
           source: 'SmartHostel Campus Engine',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
@@ -168,7 +168,7 @@ export default function HostelAssistantWidget({ currentUser }) {
         <button
           onClick={() => setIsOpen(true)}
           className="fixed bottom-6 right-6 z-40 group flex items-center space-x-2.5 bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 text-white p-3 sm:px-4 sm:py-3 rounded-2xl shadow-xl shadow-indigo-600/30 hover:shadow-indigo-500/50 hover:scale-105 active:scale-95 transition-all duration-300 border border-indigo-400/30 backdrop-blur-md"
-          title="Open SmartHostel AI Assistant"
+          title="Open SmartHostel Campus Desk"
         >
           <div className="relative">
             <Sparkles className="w-5 h-5 text-amber-300 group-hover:rotate-12 transition-transform duration-300" />
@@ -176,8 +176,8 @@ export default function HostelAssistantWidget({ currentUser }) {
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full" />
           </div>
           <div className="text-left hidden sm:block">
-            <p className="text-xs font-black tracking-wide leading-tight">AI Assistant</p>
-            <p className="text-[10px] text-indigo-100 font-medium leading-tight">Hostel & Policy Bot</p>
+            <p className="text-xs font-black tracking-wide leading-tight">Campus Desk</p>
+            <p className="text-[10px] text-indigo-100 font-medium leading-tight">Hostel Support & FAQ</p>
           </div>
         </button>
       )}
@@ -195,7 +195,7 @@ export default function HostelAssistantWidget({ currentUser }) {
               </div>
               <div>
                 <div className="flex items-center space-x-2">
-                  <h3 className="font-bold text-white text-sm">SmartHostel Assistant</h3>
+                  <h3 className="font-bold text-white text-sm">Hostel Support Desk</h3>
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 </div>
                 <p className="text-[10px] text-indigo-300/80 font-mono">Live Database & Policy Aware</p>
@@ -323,8 +323,8 @@ export default function HostelAssistantWidget({ currentUser }) {
             </form>
 
             <div className="flex items-center justify-between text-[10px] text-slate-500 px-1">
-              <span>Google Gemini AI & Local Knowledge Base</span>
-              <span className="font-mono text-indigo-400/80">SmartHostel v2.0</span>
+              <span>SmartHostel Campus Knowledge Engine</span>
+              <span className="font-mono text-indigo-400/80">HostelOS v2.0</span>
             </div>
           </div>
         </div>
