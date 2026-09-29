@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   User, 
@@ -16,8 +16,6 @@ import {
 import api from '../services/api';
 
 export default function ProfileEditModal({ currentUser, isOpen, onClose, onProfileUpdated }) {
-  if (!isOpen) return null;
-
   const [name, setName] = useState(currentUser?.name || '');
   const [phone, setPhone] = useState(currentUser?.phone || '');
   const [roomNumber, setRoomNumber] = useState(currentUser?.roomNumber || '');
@@ -72,6 +70,22 @@ export default function ProfileEditModal({ currentUser, isOpen, onClose, onProfi
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (currentUser) {
+      setName(currentUser.name || '');
+      setPhone(currentUser.phone || '');
+      setRoomNumber(currentUser.roomNumber || '');
+      setRollNumber(currentUser.rollNumber || '');
+      setStudySchedule(currentUser.preference?.studySchedule || 'FLEXIBLE');
+      setSleepTime(currentUser.preference?.sleepTime || '23:00');
+      setCleanlinessLevel(currentUser.preference?.cleanlinessLevel || 4);
+      setNoiseTolerance(currentUser.preference?.noiseTolerance || 'MODERATE');
+      setAcPreference(Boolean(currentUser.preference?.acPreference));
+    }
+  }, [currentUser, isOpen]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fadeIn">

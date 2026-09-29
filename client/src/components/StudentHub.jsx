@@ -3,6 +3,7 @@ import {
   Home, 
   Bed, 
   Users, 
+  User,
   AlertTriangle, 
   Utensils, 
   QrCode, 
