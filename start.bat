@@ -1,24 +1,28 @@
 @echo off
+title Smart Hostel System Starter
+cd /d "%~dp0"
+
 echo ========================================================
-echo   SMART HOSTEL MANAGEMENT SYSTEM - LAUNCHER
+echo   STARTING SMART HOSTEL MANAGEMENT SYSTEM
 echo ========================================================
 echo.
 
-echo Starting Node.js Backend API on port 5000...
-start "Smart Hostel Backend" cmd /k "cd server && npm run dev"
+echo [1/3] Starting Backend API on http://localhost:5000...
+start "Smart Hostel Backend API (Port 5000)" cmd /k "cd /d "%~dp0server" && npm run dev"
 
-timeout /t 2 /nobreak >nul
+timeout /t 3 /nobreak >nul
 
-echo Starting React Vite Frontend on port 3000...
-start "Smart Hostel Frontend" cmd /k "cd client && npm run dev"
+echo [2/3] Starting Frontend UI on http://localhost:3000...
+start "Smart Hostel Frontend UI (Port 3000)" cmd /k "cd /d "%~dp0client" && npm run dev"
 
-timeout /t 2 /nobreak >nul
+timeout /t 4 /nobreak >nul
 
-echo Starting Python ML Mess Demand Engine on port 8001...
-start "Smart Hostel ML Engine" cmd /k "cd ml_service && py -m uvicorn app:app --port 8001 --reload"
+echo [3/3] Opening application in your browser...
+start http://localhost:3000
 
 echo.
 echo ========================================================
-echo System ready! Access the application at:
-echo http://localhost:3000
+echo   SYSTEM IS READY!
+echo   Frontend: http://localhost:3000
+echo   Backend:  http://localhost:5000
 echo ========================================================
